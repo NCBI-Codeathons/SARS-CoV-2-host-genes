@@ -1,2 +1,2 @@
 # Characterization of SARS-CoV-2 host genes
-Datasets Codeathon Team 2.
+Datasets Codeathon Team 2
