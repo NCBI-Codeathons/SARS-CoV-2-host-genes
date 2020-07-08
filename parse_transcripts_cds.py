@@ -6,9 +6,19 @@ import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
 a_yaml_file = open("data_report.yaml")
+bed_file = open('cds_output.bed', 'a')
 parsed_yaml_file = yaml.load(a_yaml_file, Loader=yaml.FullLoader)
 
-pp.pprint(parsed_yaml_file["genes"][0]["transcripts"][0]["cds"])
+cds = parsed_yaml_file["genes"][0]["transcripts"][0]["cds"]
+chromosome = parsed_yaml_file["genes"][0]['chromosomes'][0]
+chromStart = parsed_yaml_file["genes"][0]["genomicRanges"][0]["range"][0]["begin"]
+chromEnd = parsed_yaml_file["genes"][0]["genomicRanges"][0]["range"][0]["end"]
+orientation = parsed_yaml_file["genes"][0]["genomicRanges"][0]["range"][0]["orientation"]
 
+pp.pprint(cds)
+
+bed_file.write(f"chr{chromosome}  {chromStart}  {chromEnd}\n")
+a_yaml_file.close()
+bed_file.close()
 # prints out the following...
 # {'accessionVersion': 'NM_021804.3', 'range': [{'begin': '307', 'end': '2724'}]}
