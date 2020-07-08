@@ -14,7 +14,7 @@ HTTP_PREFIX = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=ge
 class GeneSummary():
     def __init__(self, gene_id):
         Entrez.email = "codeathon@example.com"
-        self.handle = Entrez.esummary(db="gene", id=2)
+        self.handle = Entrez.esummary(db="gene", id=gene_id)
         # Entrez.esummary(db="gene", id="28")
 
     def record(self):
@@ -28,10 +28,16 @@ class GeneData():
         record = gene_sum.record()
         self.doc = record['DocumentSummarySet']['DocumentSummary'][0]
 
-    def summary(self):
-        summary = self.doc['Summary']
-        print(summary)
+    def print_field(self, name, mapped_key):
+        print(name + '\t' + self.doc[mapped_key])
+    
 
 if __name__ == "__main__":
     data = GeneData(28)
-    data.summary()
+    value_list = {'Summary': 'Summary',
+                  'Symbol': 'Name',
+                  'Aliases': 'OtherAliases',
+                  'Description': 'Description',
+                  }
+    for key, val in value_list.items():
+        data.print_field(key, val)
