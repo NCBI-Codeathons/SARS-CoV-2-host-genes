@@ -1,6 +1,7 @@
+
 import yaml
 import pprint
-
+from biopython_helpers import *
 
 def main():
     pp = pprint.PrettyPrinter(indent=4)
@@ -59,5 +60,16 @@ def outputBEDfile(parsed_yaml_file, bed_file, pp):
     bed_file.write(f"{accessionVersion}    {chromStart}    {chromEnd}    {name}    {score}    {strand}\n")
 
 
+def output_upstream_regions():
+    install_datasets()
+    gene_data = get_gene_data([59272])
+    for gene in gene_data['genes']:
+        symbol = gene["symbol"]
+        upstream_collection = gene_to_upstream(gene)
+        for row in upstream_collection:
+            name = f'{symbol}_upstream_region:'+','.join(row[1:])
+            write_bed(row[0], name)
+
+
 if __name__ == "__main__":
-    main()
+    # main()
