@@ -62,7 +62,6 @@ class GeneMetaReport():
 
     def __init__(self, gene_list):
         self.genes = gene_list
-        self.fout_name = "metadata.tsv"
         self.field_list = [('Summary', DomElement('Summary', None, True)),
                   ('Symbol', DomElement('Name', None, True)),
                   ('Aliases', DomElement('OtherAliases', None, True)),
@@ -71,16 +70,14 @@ class GeneMetaReport():
                   ('Publications', DomElement('', None, "Gene2Pubmed")),
                  ]
 
-    def write_report(self):
-        with open(self.fout_name, "w") as fout:
-            fields = []
-            for field in self.field_list:
-                fields.append(field[0])
-            fout.write('\t'.join(fields) + "\r\n")
-            for gene_id in self.genes:
-                data = GeneData(gene_id)
-                field_val = []
-                for _, val in self.field_list:
-                    field_val.append(data.pretty_print_field(val))
-                fout.write('\t'.join(field_val) + "\r\n")
-        fout.close()
+    def write_report(self, tsv_output):
+        fields = []
+        for field in self.field_list:
+            fields.append(field[0])
+        tsv_output.write('\t'.join(fields) + "\r\n")
+        for gene_id in self.genes:
+            data = GeneData(gene_id)
+            field_val = []
+            for _, val in self.field_list:
+                field_val.append(data.pretty_print_field(val))
+            tsv_output.write('\t'.join(field_val) + "\r\n")

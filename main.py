@@ -4,11 +4,31 @@ import argparse
 import yaml
 import pprint
 import os
+from sys import stderr
+from pathlib import Path
 from subprocess import run
 from biopython_helpers import *
 from metadata import GeneMetaReport
 
-def process_protein_fasta(dataset_dir, dest_dir='.'):
+
+default_gene_ids = [
+    #    ACE2        ABO    TMPRSS2
+        59272,        28,      7113, # Human
+        70008,     80908,     50528, # Mouse
+       492331,               494080, # Zebrafish
+       712790,    722252,    715138, # Rhesus monkey
+    112313373, 112320051, 112306012  # Common vampire bat
+    ]
+
+
+def process_location(gene_data, bed_output):
+    for gene in gene_data['genes']:
+        gene_id = gene['geneId']
+        gene_location = make_location(gene['genomicRanges'][0])
+        name = f'GeneID_{gene_id}'
+        write_bed(bed_output, gene_location, name)
+
+def process_protein_fasta(dataset_dir, dest_dir):
     run(['bash', 'get_proteins.sh', dataset_dir, dest_dir])
 
 def process_cds_exons_variants():
@@ -68,43 +88,56 @@ def outputBEDfile(parsed_yaml_file, bed_file, pp):
     bed_file.write(f"{accessionVersion}    {chromStart}    {chromEnd}    {name}    {score}    {strand}\n")
 
 
-def output_upstream_regions(gene_data):
+def output_upstream_regions(gene_data, bed_output):
     for gene in gene_data['genes']:
         symbol = gene["symbol"]
         upstream_collection = gene_to_upstream(gene)
         for row in upstream_collection:
             name = f'{symbol}_upstream_region:'+','.join(row[1:])
-            write_bed(row[0], name)
+            write_bed(bed_output, row[0], name)
 
-default_gene_ids = [
-    #    ACE2        ABO    TMPRSS2
-        59272,        28,      7113, # Human
-        70008,     80908,     50528, # Mouse
-       492331,               494080, # Zebrafish
-       712790,    722252,    715138, # Rhesus monkey
-    112313373, 112320051, 112306012  # Common vampire bat
-    ]
-
-def process_genes(gene_list):
+def process_all(gene_list, output_dir):
     dataset_dir='sars-cov2-gene-data'
-    gene_data = get_gene_data(gene_list, dataset_dir)
+    with open(output_dir/'sars-cov2.tmp', 'w') as bed_output:
+        stderr.write('- Fetching gene data\n')
+        gene_data = get_gene_data(gene_list, dataset_dir)
 
-    process_protein_fasta(dataset_dir, )
-    output_upstream_regions(gene_data)
+        stderr.write('- Processing gene locations\n')
+        process_location(gene_data, bed_output)
 
+        stderr.write('- Processing upstream regions\n')
+        output_upstream_regions(gene_data, bed_output)
+
+    stderr.write('- Processing protien FASTA\n')
+    process_protein_fasta(dataset_dir, output_dir/'sars-cov2.fasta')
+
+    stderr.write('- Sorting BED output\n')
+    run(['sort', '-o', output_dir/'sars-cov2.bed', '--', output_dir/'sars-cov2.tmp'])
+    remove(output_dir/'sars-cov2.tmp')
+
+    stderr.write('- Precessing metadata\n')
+    meta_report = GeneMetaReport(gene_list)
+    with open(output_dir/'sars-cov2-metadata.tsv', 'w') as tsv_output:
+        meta_report.write_report(tsv_output)
+
+    stderr.write('- Processing CDS, exons, and transcript variants\n')
     os.chdir(f'{dataset_dir}/ncbi_dataset/data')
     process_cds_exons_variants()
+
+    stderr.write('Done\n')
 
 def main():
     parser = argparse.ArgumentParser(description='Characterization of SARS-CoV-2 host genes.')
     default_gene_ids_string = ', '.join(str(id) for id in default_gene_ids)
+    parser.add_argument('--output', nargs='?',
+                        default='.',
+                        help=f'Output directory. DEFAULT: Current Directory (.)')
     parser.add_argument('genes', nargs='*',
                         default=default_gene_ids,
                         help=f'Input Gene IDs process. DEFAULT: {default_gene_ids_string}')
     args = parser.parse_args()
-    process_genes(args.genes)
-    meta_report = GeneMetaReport(args.genes)
-    meta_report.write_report()
+    output_dir = Path(args.output)
+    process_all(args.genes, output_dir)
 
 
 if __name__ == "__main__":

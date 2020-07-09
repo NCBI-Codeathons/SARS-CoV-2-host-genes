@@ -14,13 +14,17 @@ The study of SARS-CoV-2 has become a significant interest for human health resea
 
 ## Requirements
 * Python version 3.7 or above
+* NCBI E-Utils
 
 ## Quick Start
 After cloning or downloading this repository, you will need to:
-* (Optional but recommended:) Create a Python virtual environment.
+* _Pre-requisite:_ Install NCBI E-Utils
+* _Optional but recommended:_ Create a Python virtual environment.
 * Install Python library dependencies
 * Run the application, `main.py`, optionally with a list of Gene IDs of interest.
 ```
+sh -c "$(wget -q ftp://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh -O -)"
+
 python3 -m venv env
 . env/bin/activate.sh
 pip install -r requirements.txt
