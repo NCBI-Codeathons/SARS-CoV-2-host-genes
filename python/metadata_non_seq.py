@@ -35,14 +35,12 @@ class GeneData():
         self.doc_summary, self.doc_full, self.doc_pubmed = gene_record.record()
         # self.doc = record['DocumentSummarySet']['DocumentSummary'][0]
 
-    def print_field(self, name, dom_element):
+    def pretty_print_field(self, dom_element):
         if dom_element.in_esummary == "Gene2Pubmed":
-            print(name + ':\t' + dom_element.pretty_print(self.doc_pubmed))
-            return
+            return dom_element.pretty_print(self.doc_pubmed)
         if dom_element.in_esummary:
-            print(name + ':\t' + dom_element.pretty_print(self.doc_summary))
-            return
-        print(name + ':\t' + dom_element.pretty_print(self.doc_full))
+            return dom_element.pretty_print(self.doc_summary)
+        return dom_element.pretty_print(self.doc_full)
 
 
 class DomElement():
@@ -63,14 +61,45 @@ class DomElement():
             return doc[self.tag]
 
 
-if __name__ == "__main__":
-    data = GeneData(28)
-    value_list = [('Summary', DomElement('Summary', None, True)),
+class GeneMetaReport():
+
+    def __init__(self, gene_list):
+        self.genes = self._parse_gene_list(gene_list)
+        self.fout_name = "metadata.tsv"
+        self.field_list = [('Summary', DomElement('Summary', None, True)),
                   ('Symbol', DomElement('Name', None, True)),
                   ('Aliases', DomElement('OtherAliases', None, True)),
                   ('Description', DomElement('Description', None, True)),
                   ('Type', DomElement('Entrezgene_type', 'value', False)),
                   ('Publications', DomElement('', None, "Gene2Pubmed")),
                  ]
-    for key, val in value_list:
-        data.print_field(key, val)
+
+    def write_report(self):
+        with open(self.fout_name, "w") as fout:
+            fields = []
+            for field in self.field_list:
+                fields.append(field[0])
+            fout.write('\t'.join(fields) + "\r\n")
+            for gene_id in self.genes:
+                data = GeneData(gene_id)
+                field_val = []
+                for _, val in self.field_list:
+                    field_val.append(data.pretty_print_field(val))
+                fout.write('\t'.join(field_val) + "\r\n")
+        fout.close()
+
+    def _parse_gene_list(self, gene_list):
+        gene_str_list = gene_list.split(',')
+        gene_ids = []
+        for gene in gene_str_list:
+            try:
+                gene_id = int(gene.strip())
+                gene_ids.append(gene_id)
+            except Exception:
+                print(f"Don't understand {gene} as a gene id")
+        return gene_ids
+
+
+if __name__ == "__main__":
+    meta_report = GeneMetaReport("28")
+    meta_report.write_report()
