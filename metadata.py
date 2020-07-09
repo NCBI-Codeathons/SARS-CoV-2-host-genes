@@ -77,11 +77,11 @@ class GeneMetaReport():
             fields = []
             for field in self.field_list:
                 fields.append(field[0])
-            fout.write('\t'.join(fields) + "\r\n")
+            fout.write('Id\t' + '\t'.join(fields) + "\r\n")
             for gene_id in self.genes:
                 data = GeneData(gene_id)
                 field_val = []
                 for _, val in self.field_list:
                     field_val.append(data.pretty_print_field(val))
-                fout.write('\t'.join(field_val) + "\r\n")
+                fout.write(str(gene_id) + '\t' + '\t'.join(field_val) + "\r\n")
         fout.close()
