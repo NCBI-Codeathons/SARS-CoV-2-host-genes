@@ -72,7 +72,7 @@ See http://genome.ucsc.edu/FAQ/FAQformat.html#format1 for list of standard colum
 - File sorting by column 1 primary, column 2 secondary (chr and start positions, `sort -k1,1 -k2,2n` on command line)
 - Score (column 5) is irrelevant to this output but requires an integer, so value 1 is used here
 - The GeneID is indicated in column 4 (the only descriptive/label column), and may be joined via an underscore to other pertinent identifiable information for the feature. The name/label does not include spaces.
-- The relevant strand in column 5 is indicated by either '+' or '-'. All gene-related features in this output are strand-specific.
+- The relevant strand in column 6 is indicated by either '+' or '-'. All gene-related features in this output are strand-specific.
 
 ### Datasets tool
 See https://www.ncbi.nlm.nih.gov/datasets/docs/command-line-start/ for documentation on how to download and use this tool.
