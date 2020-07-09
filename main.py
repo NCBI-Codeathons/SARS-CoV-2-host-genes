@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
 
+import argparse
 import yaml
 import pprint
+import os
 from biopython_helpers import *
 
-def main():
+def process_cds_exons_variants():
     pp = pprint.PrettyPrinter(indent=4)
     # TODO: data_report.yaml is needed for code to work. removed my test file for now
     a_yaml_file = open("data_report.yaml")
@@ -60,9 +63,7 @@ def outputBEDfile(parsed_yaml_file, bed_file, pp):
     bed_file.write(f"{accessionVersion}    {chromStart}    {chromEnd}    {name}    {score}    {strand}\n")
 
 
-def output_upstream_regions():
-    install_datasets()
-    gene_data = get_gene_data([59272])
+def output_upstream_regions(gene_data):
     for gene in gene_data['genes']:
         symbol = gene["symbol"]
         upstream_collection = gene_to_upstream(gene)
@@ -70,6 +71,31 @@ def output_upstream_regions():
             name = f'{symbol}_upstream_region:'+','.join(row[1:])
             write_bed(row[0], name)
 
+default_gene_ids = [
+    #    ACE2        ABO    TMPRSS2
+        59272,        28,      7113, # Human
+        70008,     80908,     50528, # Mouse
+       492331,               494080, # Zebrafish
+       712790,    722252,    715138, # Rhesus monkey
+    112313373, 112320051, 112306012  # Common vampire bat
+    ]
 
+def process_genes(gene_list):
+    dest='sars-cov2-gene-data'
+    gene_data = get_gene_data(gene_list, dest)
+    output_upstream_regions(gene_data)
+    os.chdir(f'{dest}/ncbi_dataset/data')
+    process_cds_exons_variants()
+
+def main():
+    parser = argparse.ArgumentParser(description='Characterization of SARS-CoV-2 host genes.')
+    default_gene_ids_string = ', '.join(str(id) for id in default_gene_ids)
+    parser.add_argument('genes', nargs='?',
+                        default=default_gene_ids,
+                        help=f'Input Gene IDs process. DEFAULT: {default_gene_ids_string}')
+    args = parser.parse_args()
+    install_datasets()
+    process_genes(args.genes)
+    
 if __name__ == "__main__":
-    # main()
+    main()

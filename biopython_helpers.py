@@ -8,7 +8,6 @@ from os import stat, chmod, remove
 from shutil import rmtree
 from stat import S_IEXEC
 from subprocess import run
-from pprint import pprint
 from Bio.SeqFeature import FeatureLocation, CompoundLocation
 
 
@@ -26,12 +25,11 @@ def download_gene_data(gene_list, dest):
     run(['unzip', '-qod', dest, 'ncbi_dataset.zip'])
     remove('ncbi_dataset.zip')
 
-def get_gene_data(gene_list):
-    dest='sars-cov2-gene-data'
+def get_gene_data(gene_list, dest):
     download_gene_data(gene_list, dest)
     with open(f'{dest}/ncbi_dataset/data/data_report.yaml') as yaml_file:
         gene_data = yaml.load(yaml_file, Loader=yaml.SafeLoader)
-    rmtree(dest)
+    # rmtree(dest)
     return gene_data
 
 
