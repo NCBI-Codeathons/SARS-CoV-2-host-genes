@@ -5,6 +5,7 @@ import yaml
 import pprint
 import os
 from biopython_helpers import *
+from metadata import GeneMetaReport
 
 def process_cds_exons_variants():
     pp = pprint.PrettyPrinter(indent=4)
@@ -95,6 +96,9 @@ def main():
                         help=f'Input Gene IDs process. DEFAULT: {default_gene_ids_string}')
     args = parser.parse_args()
     process_genes(args.genes)
-    
+    meta_report = GeneMetaReport(args.genes)
+    meta_report.write_report()
+
+
 if __name__ == "__main__":
     main()
