@@ -12,6 +12,23 @@ Xuan Zhang
 ## Introduction
 The study of SARS-CoV-2 has become a significant interest for human health research, and has drawn attention to the human genes associated with SARS-CoV-2 entry. Users are therefore interested in retrieving as much information as possible about these host genes and their products, e.g. ACE2 encoding the SARS-CoV-2 spike protein receptor or TMPRSS2 encoding a protease that facilitates viral entry. In order to facilitate study of SARS-CoV-2 host genes, a comprehensive report of key features of structural annotation will be produced from this Codeathon, and will also include key metadata for these genes, such as nomenclature, summaries or associated publications. Since study of these genes in model organisms is also of interest to researchers, information on the orthologous genes in a select set of organisms will also be produced. The overriding goal will be to provide data from various NCBI resources (e.g. Gene, Nucleotide, Protein records) in a succinct tabular format, such that the user can quickly retrieve multiple types of high-interest information about these genes in one place.
 
+## Requirements
+* Python version 3.7 or above
+
+## Quick Start
+After cloning or downloading this repository, you will need to:
+* (Optional but recommended:) Create a Python virtual environment.
+* Install Python library dependencies
+* Run the application, `main.py`, optionally with a list of Gene IDs of interest.
+```
+python3 -m venv env
+. env/bin/activate.sh
+pip install -r requirements.txt
+
+./main.py -h
+./main.py 59272 28 7113
+```
+
 ## Scope
 Genes to work on:
 
