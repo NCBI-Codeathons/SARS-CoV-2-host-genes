@@ -4,8 +4,12 @@ import argparse
 import yaml
 import pprint
 import os
+from subprocess import run
 from biopython_helpers import *
 from metadata import GeneMetaReport
+
+def process_protein_fasta(dataset_dir, dest_dir='.'):
+    run(['bash', 'get_proteins.sh', dataset_dir, dest_dir])
 
 def process_cds_exons_variants():
     pp = pprint.PrettyPrinter(indent=4)
@@ -82,10 +86,13 @@ default_gene_ids = [
     ]
 
 def process_genes(gene_list):
-    dest='sars-cov2-gene-data'
-    gene_data = get_gene_data(gene_list, dest)
+    dataset_dir='sars-cov2-gene-data'
+    gene_data = get_gene_data(gene_list, dataset_dir)
+
+    process_protein_fasta(dataset_dir, )
     output_upstream_regions(gene_data)
-    os.chdir(f'{dest}/ncbi_dataset/data')
+
+    os.chdir(f'{dataset_dir}/ncbi_dataset/data')
     process_cds_exons_variants()
 
 def main():
