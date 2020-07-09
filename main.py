@@ -5,6 +5,7 @@ import yaml
 import pprint
 import os
 from biopython_helpers import *
+from metadata import GeneMetaReport
 
 def process_cds_exons_variants():
     pp = pprint.PrettyPrinter(indent=4)
@@ -89,13 +90,27 @@ def process_genes(gene_list):
 
 def main():
     parser = argparse.ArgumentParser(description='Characterization of SARS-CoV-2 host genes.')
-    default_gene_ids_string = ', '.join(str(id) for id in default_gene_ids)
+    default_gene_ids_string = ','.join(str(id) for id in default_gene_ids)
     parser.add_argument('genes', nargs='?',
                         default=default_gene_ids,
                         help=f'Input Gene IDs process. DEFAULT: {default_gene_ids_string}')
     args = parser.parse_args()
+    if not isinstance(args.genes, list):
+        gene_str_list = gene_list.split(',')
+        gene_ids = []
+        for gene in gene_str_list:
+            try:
+                gene_id = int(gene.strip())
+                gene_ids.append(gene_id)
+            except Exception:
+                print(f"Don't understand {gene} as a gene id")
+    else:
+        gene_ids = args.genes
     install_datasets()
-    process_genes(args.genes)
+    process_genes(gene_ids)
+    meta_report = GeneMetaReport(gene_ids)
+    meta_report.write_report()
+
     
 if __name__ == "__main__":
     main()
