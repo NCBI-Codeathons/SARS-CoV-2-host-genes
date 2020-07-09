@@ -4,11 +4,13 @@ import sys
 import zipfile
 import yaml
 import requests
+import ncbi.datasets
 from os import stat, chmod, remove
-from shutil import rmtree
+from shutil import copyfileobj, rmtree
 from stat import S_IEXEC
 from subprocess import run
 from Bio.SeqFeature import FeatureLocation, CompoundLocation
+
 
 
 def install_datasets():
@@ -20,13 +22,34 @@ def install_datasets():
     chmod(path, st.st_mode | S_IEXEC)
 
 
-def download_gene_data(gene_list, dest):
+def download_gene_data_via_command_line(gene_list, dest):
     run(['./datasets', 'download', 'gene', ','.join(str(gene) for gene in gene_list)])
     run(['unzip', '-qod', dest, 'ncbi_dataset.zip'])
     remove('ncbi_dataset.zip')
 
-def get_gene_data(gene_list, dest):
-    download_gene_data(gene_list, dest)
+
+def download_gene_data_via_api(gene_ids, dest):
+    with ncbi.datasets.ApiClient() as api_client:
+        api_instance = ncbi.datasets.DownloadApi(api_client)
+        include_sequence_type = ['SEQ_TYPE_GENE', 'SEQ_TYPE_RNA', 'SEQ_TYPE_PROTEIN']
+        filename = 'sars-cov2-genes.zip'
+        api_response = api_instance.download_gene_package(gene_ids,
+                            filename=filename, _preload_content=False)
+        zip_file = open(filename, 'wb')
+        try:
+            copyfileobj(api_response, zip_file)
+            with zipfile.ZipFile(filename) as zip_data:
+                zip_data.extractall(dest)
+        finally:
+            zip_file.close()
+            remove(filename)
+
+
+def download_gene_data(gene_ids, dest):
+    download_gene_data_via_api(gene_ids, dest)
+
+def get_gene_data(gene_ids, dest):
+    download_gene_data(gene_ids, dest)
     with open(f'{dest}/ncbi_dataset/data/data_report.yaml') as yaml_file:
         gene_data = yaml.load(yaml_file, Loader=yaml.SafeLoader)
     # rmtree(dest)
