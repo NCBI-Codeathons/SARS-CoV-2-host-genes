@@ -91,11 +91,10 @@ def process_genes(gene_list):
 def main():
     parser = argparse.ArgumentParser(description='Characterization of SARS-CoV-2 host genes.')
     default_gene_ids_string = ', '.join(str(id) for id in default_gene_ids)
-    parser.add_argument('genes', nargs='?',
+    parser.add_argument('genes', nargs='*',
                         default=default_gene_ids,
                         help=f'Input Gene IDs process. DEFAULT: {default_gene_ids_string}')
     args = parser.parse_args()
-    install_datasets()
     process_genes(args.genes)
     meta_report = GeneMetaReport(args.genes)
     meta_report.write_report()
