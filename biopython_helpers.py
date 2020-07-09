@@ -121,4 +121,4 @@ def gene_to_upstream(gene, upstream_length = 2000):
 def write_bed(location, name, score=None):
     bed_strand = {None:'.', 0:'.', -1:'-', 1:'+'}[location.strand]
     bed_score = '.' if score is None else score
-    print(f'{location.ref}\t{location.start}\t{location.end}\t{name}\t{bed_score}\t{bed_strand}')
+    print(f'{location.ref}\t{location.start}\t{location.end}\t{name}\t{bed_score}\t{bed_strand}\n')

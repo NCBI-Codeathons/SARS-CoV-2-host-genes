@@ -1,5 +1,6 @@
 appdirs==1.4.4
 asn1crypto==0.24.0
+biopython==1.77
 bleach==3.1.2
 cryptography==2.6.1
 decorator==4.3.0
@@ -41,6 +42,7 @@ python-dateutil==2.7.3
 pyxdg==0.25
 PyYAML==5.3.1
 pyzmq==17.1.2
+requests==2.24.0
 SecretStorage==2.3.1
 Send2Trash==1.5.0
 simplegeneric==0.8.1
