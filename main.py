@@ -3,9 +3,10 @@
 import argparse
 import yaml
 import pprint
-import os
+from os import chdir, makedirs
 from sys import stderr
 from pathlib import Path
+from shutil import copyfile
 from subprocess import run
 from biopython_helpers import *
 from metadata import GeneMetaReport
@@ -97,8 +98,10 @@ def output_upstream_regions(gene_data, bed_output):
             write_bed(bed_output, row[0], name)
 
 def process_all(gene_list, output_dir):
-    dataset_dir='sars-cov2-gene-data'
-    with open(output_dir/'sars-cov2.tmp', 'w') as bed_output:
+    dataset_dir=Path('sars-cov2-gene-data')
+    base='sars-cov2-host-genes'
+    bed_unsorted = output_dir/(base+'.tmp')
+    with open(bed_unsorted, 'w') as bed_output:
         stderr.write('- Fetching gene data\n')
         gene_data = get_gene_data(gene_list, dataset_dir)
 
@@ -109,19 +112,22 @@ def process_all(gene_list, output_dir):
         output_upstream_regions(gene_data, bed_output)
 
     stderr.write('- Processing protien FASTA\n')
-    process_protein_fasta(dataset_dir, output_dir/'sars-cov2.fasta')
+    copyfile(dataset_dir/'ncbi_dataset/data/protein.faa', output_dir/(base+'-protein.fasta'))
+
+    stderr.write('- Processing protien domains FASTA\n')
+    process_protein_fasta(dataset_dir, output_dir/(base+'-protein-domains.fasta'))
 
     stderr.write('- Sorting BED output\n')
-    run(['sort', '-o', output_dir/'sars-cov2.bed', '--', output_dir/'sars-cov2.tmp'])
-    remove(output_dir/'sars-cov2.tmp')
+    run(['sort', '-o', output_dir/(base+'.bed'), '--', bed_unsorted])
+    remove(bed_unsorted)
 
     stderr.write('- Precessing metadata\n')
     meta_report = GeneMetaReport(gene_list)
-    with open(output_dir/'sars-cov2-metadata.tsv', 'w') as tsv_output:
+    with open(output_dir/(base+'-metadata.tsv'), 'w') as tsv_output:
         meta_report.write_report(tsv_output)
 
     stderr.write('- Processing CDS, exons, and transcript variants\n')
-    os.chdir(f'{dataset_dir}/ncbi_dataset/data')
+    chdir(f'{dataset_dir}/ncbi_dataset/data')
     process_cds_exons_variants()
 
     stderr.write('Done\n')
@@ -137,6 +143,7 @@ def main():
                         help=f'Input Gene IDs process. DEFAULT: {default_gene_ids_string}')
     args = parser.parse_args()
     output_dir = Path(args.output)
+    makedirs(output_dir, exist_ok=True)
     process_all(args.genes, output_dir)
 
 
