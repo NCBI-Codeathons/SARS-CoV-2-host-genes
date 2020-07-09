@@ -4,10 +4,10 @@ Input: gene id
 Output: print stdout
 https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=28
 """
-import xml.etree.ElementTree as ET
-from xml.dom import minidom
+# import xml.etree.ElementTree as ET
+# from xml.dom import minidom
 from Bio import Entrez
-import urllib.request
+# import urllib.request
 
 class GeneRetrieve():
     def __init__(self, gene_id):
@@ -53,6 +53,14 @@ class DomElement():
             for link in doc['LinkSetDb'][0]['Link']:
                 pubmed_ids.append(link['Id'])
             return ', '.join(pubmed_ids)
+        if self.tag == "GeneExpression":
+            tissue = ""
+            for comm in doc['Entrezgene_comments']:
+                if comm.get('Gene-commentary_heading') == 'Representative Expression':
+                    for gene_comm in comm['Gene-commentary_comment']:
+                        if gene_comm['Gene-commentary_label'] == 'Tissue List':
+                            tissue = gene_comm['Gene-commentary_text']
+            return tissue
         if self.attribute_name:
             return getattr(doc[self.tag], 'attributes')[self.attribute_name]
         else:
@@ -70,6 +78,7 @@ class GeneMetaReport():
                   ('Description', DomElement('Description', None, True)),
                   ('Type', DomElement('Entrezgene_type', 'value', False)),
                   ('Publications', DomElement('', None, "Gene2Pubmed")),
+                  ('Expression', DomElement('GeneExpression', None, False)),
                  ]
 
     def write_report(self):

@@ -95,7 +95,7 @@ def main():
                         default=default_gene_ids,
                         help=f'Input Gene IDs process. DEFAULT: {default_gene_ids_string}')
     args = parser.parse_args()
-    process_genes(args.genes)
+    # process_genes(args.genes)
     meta_report = GeneMetaReport(args.genes)
     meta_report.write_report()
 
