@@ -12,6 +12,7 @@ import urllib.request
 class GeneRetrieve():
     def __init__(self, gene_id):
         Entrez.email = "codeathon@example.com"
+        Entrez.api_key = "ab0568529a7dd0e599fd12b3498f1c8e9e08"
         self.handle_summary = Entrez.esummary(db="gene", id=gene_id, rettype="xml")
         self.handle_full = Entrez.efetch(db="gene", id=gene_id, rettype="xml")
         self.handle_gene2pubmed = Entrez.elink(dbfrom="gene", db="pubmed", id=gene_id, rettype="xml")
