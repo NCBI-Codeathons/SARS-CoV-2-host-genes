@@ -4,10 +4,7 @@ Input: gene id
 Output: print stdout
 https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=28
 """
-import xml.etree.ElementTree as ET
-from xml.dom import minidom
 from Bio import Entrez
-import urllib.request
 
 class GeneRetrieve():
     def __init__(self, gene_id, api_key=None):
@@ -17,9 +14,6 @@ class GeneRetrieve():
         self.handle_summary = Entrez.esummary(db="gene", id=gene_id, rettype="xml")
         self.handle_full = Entrez.efetch(db="gene", id=gene_id, rettype="xml")
         self.handle_gene2pubmed = Entrez.elink(dbfrom="gene", db="pubmed", id=gene_id, rettype="xml")
-        # webUrl = urllib.request.urlopen('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=28')
-        # webUrl.getcode() == 200
-        # data = webUrl.read()
 
     def record(self):
         record_summary = Entrez.read(self.handle_summary)
@@ -32,7 +26,6 @@ class GeneData():
     def __init__(self, gene_id, api_key):
         gene_record = GeneRetrieve(gene_id, api_key)
         self.doc_summary, self.doc_full, self.doc_pubmed = gene_record.record()
-        # self.doc = record['DocumentSummarySet']['DocumentSummary'][0]
 
     def pretty_print_field(self, dom_element):
         if dom_element.in_esummary == "Gene2Pubmed":
@@ -54,6 +47,14 @@ class DomElement():
             for link in doc['LinkSetDb'][0]['Link']:
                 pubmed_ids.append(link['Id'])
             return ', '.join(pubmed_ids)
+        if self.tag == "GeneExpression":
+            tissue = ""
+            for comm in doc['Entrezgene_comments']:
+                if comm.get('Gene-commentary_heading') == 'Representative Expression':
+                    for gene_comm in comm['Gene-commentary_comment']:
+                        if gene_comm['Gene-commentary_label'] == 'Tissue List':
+                            tissue = gene_comm['Gene-commentary_text']
+            return tissue
         if self.attribute_name:
             return getattr(doc[self.tag], 'attributes')[self.attribute_name]
         else:
@@ -71,6 +72,7 @@ class GeneMetaReport():
                   ('Description', DomElement('Description', None, True)),
                   ('Type', DomElement('Entrezgene_type', 'value', False)),
                   ('Publications', DomElement('', None, "Gene2Pubmed")),
+                  ('Expression', DomElement('GeneExpression', None, False)),
                  ]
 
     def write_report(self, tsv_output):
