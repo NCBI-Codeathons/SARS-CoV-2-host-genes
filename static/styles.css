@@ -22,10 +22,19 @@ h2 {
   padding-left: 2rem;
 }
 
+/* .proteins-wrapper > p:first-of-type {
+  padding-top: 1rem;
+}
+
+.proteins-wrapper > p:last-of-type {
+  padding-bottom: 1rem;
+} */
+
 .proteins-wrapper > p {
   max-width: 75%;
   word-wrap: break-word;
   letter-spacing: 3px;
+  margin: 0;
 }
 
 .domains-wrapper > p {
