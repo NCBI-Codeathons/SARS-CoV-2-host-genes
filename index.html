@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="static/styles.css" />
     <link rel="icon" type="image/png" href="static/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet" />
 </head>
 
 <body>
@@ -16,7 +17,7 @@
             class="attachment-full size-full" style="position: absolute; right: 0;" alt="Fork me on GitHub"
             data-recalc-dims="1" /></a>
     <h1 name="top">SARS-CoV-2-host-genes</h1>
-
+    <a class="back-to-top" href="#top">⬆ Back to Top</a>
     <div class="contents">
         <a href="#bedsection">BED Table</a>
         <a href="#domains">Domains FASTA</a>
@@ -25,12 +26,12 @@
     </div>
 
     <h2 id="bedsection" class="bed-header">BED file</h2>
-    <a class="back-to-top" href="#top">⬆ Back to Top</a>
+
     <table id="bed" class="display" style="width: 100%;">
         <thead>
             <tr>
                 <th>Chromosome</th>
-                <th>Chromosom Start (0 based)</th>
+                <th>Chromosome Start (0 based)</th>
                 <th>Chromosome End (non-inclusive)</th>
                 <th>Name</th>
                 <th>Score</th>
@@ -43,25 +44,28 @@
     </table>
 
     <h2 name="domains" id="domains">Protein Domains FASTA</h2>
-    <a class="back-to-top" href="#top">⬆ Back to Top</a>
+
     <div class="domains-wrapper"></div>
 
     <h2 name="protein" id="protein">Protein FASTA</h2>
-    <a class="back-to-top" href="#top">⬆ Back to Top</a>
+
     <div class="proteins-wrapper"></div>
 
     <h2 id="metadatasection" name="metadatasection">Metadata</h2>
-    <a class="back-to-top" href="#top">⬆ Back to Top</a>
 
     <table id="metadata" class="display" style="width: 100%;">
         <thead>
             <tr>
+                <th>Id</th>
                 <th>Summary</th>
                 <th>Symbol</th>
                 <th>Aliases</th>
                 <th>Description</th>
+                <th>Other names</th>
                 <th>Type</th>
                 <th>Publications</th>
+                <th>Expression</th>
+                <th>GO</th>
             </tr>
         </thead>
         <tbody class="metadata-body">
@@ -97,7 +101,7 @@
     let metadata_split = metadata.map((x) =>
         x.split(/\s{2,}|\t/).filter((e) => e.trim().length > 0)
     );
-    // console.log(metadata_split);
+    console.log(metadata_split);
 
     let metadataBody = $(".metadata-body");
 
@@ -111,27 +115,62 @@
     }
 
     // PROTEIN DOMAINS
-    console.log(domains);
-    let domainswrapper = $(".domains-wrapper");
+    let domainsWrapper = $(".domains-wrapper");
     for (const [i, domain] of domains.entries()) {
-        if (i % 2 === 0) {
-            //odd
-            domainswrapper.append(`<b>${domain}</b>`);
-        } else if (i % 2 !== 0) {
-            //even
-            domainswrapper.append(`<p>${domain}</p>`);
+        if (domain.startsWith(">")) {
+            let domain_split = domain.split("|");
+            domainsWrapper.append(
+                $("<span/>")
+                    .text(`${domain_split[0]}`)
+                    .css("background-color", "#fef3eb")
+            );
+            domainsWrapper.append(
+                $("<span/>")
+                    .text(`${domain_split[1]}`)
+                    .css("background-color", "#8fdbf5")
+            );
+            domainsWrapper.append(
+                $("<span/>")
+                    .text(`${domain_split[2]}`)
+                    .css("background-color", "#8fdbf5")
+            );
+            domainsWrapper.append(
+                $("<span/>")
+                    .text(`${domain_split[3]}`)
+                    .css("background-color", "#82d398")
+            );
+        } else {
+            domainsWrapper.append(`<p>${domain}</p>`);
         }
     }
 
     // PROTEINs
-    console.log(proteins);
+    // console.log(proteins);
     let proteinsWrapper = $(".proteins-wrapper");
     for (const [i, protein] of proteins.entries()) {
-        if (i % 2 === 0) {
-            //odd
-            proteinsWrapper.append(`<b>${protein}</b>`);
-        } else if (i % 2 !== 0) {
-            //even
+        if (protein.startsWith(">")) {
+            let protein_split = protein.split(" ");
+            proteinsWrapper.append(
+                $("<span/>")
+                    .text(`${protein_split[0]}`)
+                    .css("background-color", "#fef3eb")
+            );
+            let protein_split_middle = protein_split.slice(1, -2).join(" ");
+            proteinsWrapper.append(
+                $("<span/>")
+                    .text(`${protein_split_middle}`)
+                    .css("background-color", "#8fdbf5")
+            );
+            proteinsWrapper.append(
+                $("<span/>")
+                    .text(
+                        `${protein_split[protein_split.length - 2]} ${
+                        protein_split[protein_split.length - 1]
+                        }`
+                    )
+                    .css("background-color", "#82d398")
+            );
+        } else {
             proteinsWrapper.append(`<p>${protein}</p>`);
         }
     }
