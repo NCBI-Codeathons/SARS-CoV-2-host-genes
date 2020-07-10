@@ -1,7 +1,7 @@
 """
 This Python retrieves Non-sequence metadata
-Input: gene id
-Output: print stdout
+Input: gene ids as list
+Output: .tsv file
 https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=28
 """
 from Bio import Entrez
@@ -9,8 +9,9 @@ from Bio import Entrez
 class GeneRetrieve():
     def __init__(self, gene_id, api_key=None):
         Entrez.email = "codeathon@example.com"
-        if api_key:
-            Entrez.api_key = api_key
+        # if api_key:
+        #     Entrez.api_key = api_key
+        Entrez.api_key = 'ab0568529a7dd0e599fd12b3498f1c8e9e08'
         self.handle_summary = Entrez.esummary(db="gene", id=gene_id, rettype="xml")
         self.handle_full = Entrez.efetch(db="gene", id=gene_id, rettype="xml")
         self.handle_gene2pubmed = Entrez.elink(dbfrom="gene", db="pubmed", id=gene_id, rettype="xml")
@@ -63,11 +64,10 @@ class DomElement():
                         go_comm_comm_list = go_comm.get('Gene-commentary_comment')
                         for go_com_com in go_comm_comm_list:
                             go_com_com_source = go_com_com.get('Gene-commentary_source')
-                            if go_com_com and \
+                            if go_com_com_source and \
                                go_com_com_source[0].get('Other-source_src').get('Dbtag').get('Dbtag_db') == 'GO':
                                 go_terms.append(go_com_com_source[0].get('Other-source_anchor'))
             return ", ".join(go_terms)
-
         if self.attribute_name:
             return getattr(doc[self.tag], 'attributes')[self.attribute_name]
         else:
