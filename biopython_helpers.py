@@ -178,8 +178,4 @@ def gene_to_introns(gene):
 def write_bed(output, location, name, score=None):
     bed_strand = {None:'.', 0:'.', -1:'-', 1:'+'}[location.strand]
     bed_score = '.' if score is None else score
-<<<<<<< HEAD
-    print(f'{location.ref}\t{location.start}\t{location.end}\t{name}\t{bed_score}\t{bed_strand}\n')
-=======
     output.write(f'{location.ref}\t{location.start}\t{location.end}\t{name}\t{bed_score}\t{bed_strand}\n')
->>>>>>> 39140c860c49c42415d7fd2ac0029e6208504820
