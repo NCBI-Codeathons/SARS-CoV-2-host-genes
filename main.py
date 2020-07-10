@@ -3,8 +3,9 @@
 import argparse
 import yaml
 import pprint
-from os import environ, makedirs, remove
-from sys import stderr
+from os import path,environ, makedirs, remove
+from os.path import dirname, realpath
+from sys import argv, stderr
 from pathlib import Path
 from shutil import copyfile
 from subprocess import run
@@ -23,8 +24,12 @@ default_gene_ids = [
     ]
 
 
+def get_script_path():
+    return Path(dirname(realpath(argv[0])))
+
+
 def process_protein_fasta(dataset_dir, dest_dir):
-    run(['bash', 'get_proteins.sh', dataset_dir, dest_dir])
+    run(['bash', get_script_path()/'get_proteins.sh', dataset_dir, dest_dir])
 
 
 def make_bed_name(gene, feature_type=None, rest=None):
