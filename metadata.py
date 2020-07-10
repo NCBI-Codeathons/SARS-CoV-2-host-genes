@@ -106,5 +106,5 @@ class GeneMetaReport():
             data = GeneData(gene_id, self.api_key)
             field_val = []
             for _, val in self.field_list:
-                field_val.append(data.pretty_print_field(val))
+                field_val.append(data.pretty_print_field(val) or "-")
             tsv_output.write(str(gene_id) + '\t' + '\t'.join(field_val) + "\r\n")
