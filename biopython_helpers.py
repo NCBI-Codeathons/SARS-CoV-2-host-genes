@@ -106,8 +106,8 @@ def clip_location(position):
 
 def gene_to_upstream(gene, upstream_length = 2000):
     """Given a gene structure from an NCBI Dataset gene data report,
-    return a list of rows with upstream range and the set of
-    transcripts sharing that upstream range.
+    return a list of rows with unique transcript upstream ranges and
+    the set of transcripts sharing that upstream range.
     
     Example: [[FeatureLocation(...), 'NM_123', 'NM_456']]
     """
@@ -137,6 +137,41 @@ def gene_to_upstream(gene, upstream_length = 2000):
         else:
             upstream_collection[upstream_key] = [upstream, transcript_accession]
     return list(upstream_collection.values())
+
+
+def gene_to_introns(gene):
+    """Given a gene structure from an NCBI Dataset gene data report,
+    return a list of rows with unique introns for all transcripts.
+    
+    Example: [[FeatureLocation(...), 'NM_123', 'NM_456']]
+    """
+    intron_collection = dict()
+    # Need strand from gene location, since it's not included in exon locations.
+    gene_location = make_location(gene['genomicRanges'][0])
+
+    for transcript in gene['transcripts']:
+        transcript_accession = transcript['accessionVersion']
+        transcript_location = make_location(transcript['exons'], gene_location.strand)
+
+        for i in range(len(transcript_location.parts)-1):
+            (exon, exon_next) = (transcript_location.parts[i], transcript_location.parts[i+1])
+
+            if transcript_location.strand < 0:
+                intron = FeatureLocation(exon_next.end, exon.start,
+                                        transcript_location.strand,
+                                        gene_location.ref)
+            else:
+                intron = FeatureLocation(exon.end, exon_next.start,
+                                        transcript_location.strand,
+                                        gene_location.ref)
+
+            # BioSeq FeatureLocation not hashable.
+            intron_key = (min(intron), max(intron), intron.strand, intron.ref)
+            if intron_key in intron_collection:
+                intron_collection[intron_key].append(transcript_accession)
+            else:
+                intron_collection[intron_key] = [intron, transcript_accession]
+    return list(intron_collection.values())
 
 
 def write_bed(output, location, name, score=None):

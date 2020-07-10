@@ -97,6 +97,16 @@ def output_upstream_regions(gene_data, bed_output):
             name = f'{symbol}_upstream_region:'+','.join(row[1:])
             write_bed(bed_output, row[0], name)
 
+
+def output_introns(gene_data, bed_output):
+    for gene in gene_data['genes']:
+        symbol = gene["symbol"]
+        intron_collection = gene_to_introns(gene)
+        for row in intron_collection:
+            name = f'{symbol}_intron:'+','.join(row[1:])
+            write_bed(bed_output, row[0], name)
+
+
 def process_all(gene_list, output_dir):
     dataset_dir=Path('sars-cov2-gene-data')
     base='sars-cov2-host-genes'
@@ -110,6 +120,9 @@ def process_all(gene_list, output_dir):
 
         stderr.write('- Processing upstream regions\n')
         output_upstream_regions(gene_data, bed_output)
+
+        stderr.write('- Processing introns\n')
+        output_introns(gene_data, bed_output)
 
     stderr.write('- Processing protien FASTA\n')
     copyfile(dataset_dir/'ncbi_dataset/data/protein.faa', output_dir/(base+'-protein.fasta'))
