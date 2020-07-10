@@ -3,12 +3,12 @@
 import argparse
 import yaml
 import pprint
-from os import chdir, makedirs
+from os import makedirs, remove
 from sys import stderr
 from pathlib import Path
 from shutil import copyfile
 from subprocess import run
-from biopython_helpers import *
+from biopython_helpers import write_bed, make_location, get_gene_data, gene_to_upstream, gene_to_introns 
 from metadata import GeneMetaReport
 
 
@@ -22,71 +22,55 @@ default_gene_ids = [
     ]
 
 
-def process_location(gene_data, bed_output):
+def process_protein_fasta(dataset_dir, dest_dir):
+    run(['bash', 'get_proteins.sh', dataset_dir, dest_dir])
+
+
+def output_location(gene_data, bed_output):
     for gene in gene_data['genes']:
         gene_id = gene['geneId']
         gene_location = make_location(gene['genomicRanges'][0])
         name = f'GeneID_{gene_id}'
         write_bed(bed_output, gene_location, name)
 
-def process_protein_fasta(dataset_dir, dest_dir):
-    run(['bash', 'get_proteins.sh', dataset_dir, dest_dir])
 
-def process_cds_exons_variants():
-    pp = pprint.PrettyPrinter(indent=4)
-    # TODO: data_report.yaml is needed for code to work. removed my test file for now
-    a_yaml_file = open("data_report.yaml")
-    bed_file = open('cds_output.bed', 'w+')
-    parsed_yaml_file = yaml.load(a_yaml_file, Loader=yaml.FullLoader)
+def output_cds(gene_data, bed_output):
+    # TODO: Convert to genomic coordinates.
+    for gene in gene_data['genes']:
+        symbol = gene["symbol"]
+        for transcript in gene['transcripts']:
+            if not 'cds' in transcript: continue
 
-    parseTranscriptsCds(parsed_yaml_file, pp)
-    parseTranscriptsExons(parsed_yaml_file, pp)
-    parseTranscriptsName(parsed_yaml_file, pp)
-    outputBEDfile(parsed_yaml_file, bed_file, pp)
-
-    a_yaml_file.close()
-    bed_file.close()
+            cds = transcript['cds']
+            protein_accession = transcript['protein']['accessionVersion']
+            transcript_location = make_location(transcript['genomicRange'])
+            cds_location = make_location(transcript['cds'], transcript_location.strand)
+            for cdregion in cds_location.parts:
+                name = f'{symbol}_cds:{protein_accession}'
+                write_bed(bed_output, cdregion, name)
 
 
-def parseTranscriptsCds(parsed_yaml_file, pp):
-    cds = parsed_yaml_file["genes"][0]["transcripts"][0]["cds"]
-    pp.pprint(cds)
-    return cds
+def output_exons(gene_data, bed_output):
+    for gene in gene_data['genes']:
+        symbol = gene["symbol"]
+        for transcript in gene['transcripts']:
+            transcript_accession = transcript['accessionVersion']
+            # Need strand from genomcRnages, since it's not included in exon locations.
+            transcript_location = make_location(transcript['genomicRange'])
+            exons_location = make_location(transcript['exons'], transcript_location.strand)
+            for exon in exons_location.parts:
+                name = f'{symbol}_exon:{transcript_accession}'
+                write_bed(bed_output, exon, name)
 
-
-def parseTranscriptsExons(parsed_yaml_file, pp):
-    exons = parsed_yaml_file["genes"][0]["transcripts"][0]["exons"]
-    pp.pprint(exons)
-    return exons
-
-
-def parseTranscriptsName(parsed_yaml_file, pp):
-    name = parsed_yaml_file["genes"][0]["transcripts"][0]["name"]
-    pp.pprint(name)
-    return name
-
-
-def outputBEDfile(parsed_yaml_file, bed_file, pp):
-    chromosome = parsed_yaml_file["genes"][0]['chromosomes'][0]
-    accessionVersion = parsed_yaml_file["genes"][0]['genomicRanges'][0]['accessionVersion']
-    chromStart = parsed_yaml_file["genes"][0]["genomicRanges"][0]["range"][0]["begin"]
-    chromEnd = parsed_yaml_file["genes"][0]["genomicRanges"][0]["range"][0]["end"]
-    orientation = parsed_yaml_file["genes"][0]["genomicRanges"][0]["range"][0]["orientation"]
-    geneId = parsed_yaml_file["genes"][0]["geneId"]
-    symbol = parsed_yaml_file["genes"][0]["symbol"]
-    name = f"GeneID:{geneId}_{symbol}"
-    score = 1
-
-    if orientation == "positive":
-        strand = '+'
-    elif orientation == "minus":
-        strand = '-'
-    else:
-        strand = '.'
-
-    bed_row = f"{accessionVersion}    {chromStart}    {chromEnd}    {name}    {score}    {strand}\n" 
-    pp.pprint(bed_row)
-    bed_file.write(f"{accessionVersion}    {chromStart}    {chromEnd}    {name}    {score}    {strand}\n")
+def output_transcript_variants(gene_data, bed_output):
+    for gene in gene_data['genes']:
+        symbol = gene["symbol"]
+        for transcript in gene['transcripts']:
+            transcript_accession = transcript['accessionVersion']
+            transcript_name = transcript.get('name', 'transcript').replace(' ', '_')
+            transcript_location = make_location(transcript['genomicRange'])
+            name = f'{symbol}_{transcript_name}:{transcript_accession}'
+            write_bed(bed_output, transcript_location, name)
 
 
 def output_upstream_regions(gene_data, bed_output):
@@ -116,7 +100,16 @@ def process_all(gene_list, output_dir):
         gene_data = get_gene_data(gene_list, dataset_dir)
 
         stderr.write('- Processing gene locations\n')
-        process_location(gene_data, bed_output)
+        output_location(gene_data, bed_output)
+
+        stderr.write('- Processing CDS locations\n')
+        output_cds(gene_data, bed_output)
+
+        stderr.write('- Processing exons\n')
+        output_exons(gene_data, bed_output)
+
+        stderr.write('- Processing transcript variants\n')
+        output_transcript_variants(gene_data, bed_output)
 
         stderr.write('- Processing upstream regions\n')
         output_upstream_regions(gene_data, bed_output)
@@ -138,10 +131,6 @@ def process_all(gene_list, output_dir):
     meta_report = GeneMetaReport(gene_list)
     with open(output_dir/(base+'-metadata.tsv'), 'w') as tsv_output:
         meta_report.write_report(tsv_output)
-
-    stderr.write('- Processing CDS, exons, and transcript variants\n')
-    chdir(f'{dataset_dir}/ncbi_dataset/data')
-    process_cds_exons_variants()
 
     stderr.write('Done\n')
 
