@@ -58,7 +58,15 @@ class DomElement():
         if self.attribute_name:
             return getattr(doc[self.tag], 'attributes')[self.attribute_name]
         else:
-            return doc[self.tag]
+            tags = self.tag.split(".")
+            result = doc
+            for t in tags:
+                result = result.get(t)
+            if isinstance(result, list):
+                return ", ".join(result)
+            if isinstance(result, str):
+                return result
+            return ""
 
 
 class GeneMetaReport():
@@ -70,6 +78,7 @@ class GeneMetaReport():
                   ('Symbol', DomElement('Name', None, True)),
                   ('Aliases', DomElement('OtherAliases', None, True)),
                   ('Description', DomElement('Description', None, True)),
+                  ('Other names', DomElement('Entrezgene_prot.Prot-ref.Prot-ref_name', None, False)),
                   ('Type', DomElement('Entrezgene_type', 'value', False)),
                   ('Publications', DomElement('', None, "Gene2Pubmed")),
                   ('Expression', DomElement('GeneExpression', None, False)),
