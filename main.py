@@ -101,37 +101,37 @@ def process_all(gene_list, output_dir, api_key):
     selected_genes_text = ', '.join(str(id) for id in gene_list)
     stderr.write(f'Generating SARS-CoV2 host gene report data in: {base}\n')
     stderr.write(f'Selected genes: {selected_genes_text}.\n')
-    # with open(bed_unsorted, 'w') as bed_output:
-    #     stderr.write('- Fetching gene data\n')
-    #     gene_data = get_gene_data(gene_list, dataset_dir)
+    with open(bed_unsorted, 'w') as bed_output:
+        stderr.write('- Fetching gene data\n')
+        gene_data = get_gene_data(gene_list, dataset_dir)
 
-    #     stderr.write('- Processing gene locations\n')
-    #     output_location(gene_data, bed_output)
+        stderr.write('- Processing gene locations\n')
+        output_location(gene_data, bed_output)
 
-    #     stderr.write('- Processing CDS locations\n')
-    #     output_cds(gene_data, bed_output)
+        stderr.write('- Processing CDS locations\n')
+        output_cds(gene_data, bed_output)
 
-    #     stderr.write('- Processing exons\n')
-    #     output_exons(gene_data, bed_output)
+        stderr.write('- Processing exons\n')
+        output_exons(gene_data, bed_output)
 
-    #     stderr.write('- Processing transcript variants\n')
-    #     output_transcript_variants(gene_data, bed_output)
+        stderr.write('- Processing transcript variants\n')
+        output_transcript_variants(gene_data, bed_output)
 
-    #     stderr.write('- Processing upstream regions\n')
-    #     output_upstream_regions(gene_data, bed_output)
+        stderr.write('- Processing upstream regions\n')
+        output_upstream_regions(gene_data, bed_output)
 
-    #     stderr.write('- Processing introns\n')
-    #     output_introns(gene_data, bed_output)
+        stderr.write('- Processing introns\n')
+        output_introns(gene_data, bed_output)
 
-    # stderr.write('- Processing protien FASTA\n')
-    # copyfile(dataset_dir/'ncbi_dataset/data/protein.faa', output_dir/(base+'-protein.fasta'))
+    stderr.write('- Processing protien FASTA\n')
+    copyfile(dataset_dir/'ncbi_dataset/data/protein.faa', output_dir/(base+'-protein.fasta'))
 
-    # stderr.write('- Processing protien domains FASTA\n')
-    # process_protein_fasta(dataset_dir, output_dir/(base+'-protein-domains.fasta'))
+    stderr.write('- Processing protien domains FASTA\n')
+    process_protein_fasta(dataset_dir, output_dir/(base+'-protein-domains.fasta'))
 
-    # stderr.write('- Sorting BED output\n')
-    # run(['sort', '-o', output_dir/(base+'.bed'), '--', bed_unsorted])
-    # remove(bed_unsorted)
+    stderr.write('- Sorting BED output\n')
+    run(['sort', '-o', output_dir/(base+'.bed'), '--', bed_unsorted])
+    remove(bed_unsorted)
 
     stderr.write('- Precessing metadata\n')
     meta_report = GeneMetaReport(gene_list, api_key)
