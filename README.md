@@ -14,14 +14,15 @@ The study of SARS-CoV-2 has become a significant interest for human health resea
 
 ## Requirements
 * Python version 3.7 or above
-* NCBI E-Utils
+* [NCBI E-Utils](https://www.ncbi.nlm.nih.gov/books/NBK25501/)
 
 ## Quick Start
 After cloning or downloading this repository, you will need to:
-* _Pre-requisite:_ Install NCBI E-Utils
+* _Pre-requisite:_ Install [NCBI E-Utils](https://www.ncbi.nlm.nih.gov/books/NBK25501/)
 * _Optional but recommended:_ Create a Python virtual environment.
+* _Optional but recommended:_ Create an NCBI API Key. See [A General Introduction to the E-utilities](https://www.ncbi.nlm.nih.gov/books/NBK25497/) and [NCBI Insights: New API Keys for the E-utilities](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/) for an explanation and instructions.
 * Install Python library dependencies
-* Run the application, `main.py`, optionally with a list of Gene IDs of interest.
+* Run the application, `main.py`, optionally with a list of Gene IDs of interest; output will be placed in the current directory (unless otherwise specified).
 ```
 sh -c "$(wget -q ftp://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh -O -)"
 
@@ -50,7 +51,7 @@ Organism/gene table:
 |Rhesus monkey      |9544    |712790    |722252    |715138    |
 |Common vampire bat |9430    |112313373 |112320051 |112306012 |
 
-## Sketch of output and how to produce it
+## Description of output contents
 
 Output | Description | How to present it
 --- | --- | ---
@@ -72,20 +73,20 @@ gene type|the type of gene from Gene record, e.g. protein-coding|TSV file
 expression data|cell/tissue type expression data from Gene record|TSV file
 
 ## Technical Implementation
-- Prototyping of data retrieval
-    - Command-line `datasets` tool
-    - `jq`
-    - Simple shell scripting
-- Python for data retrieval and transformation
-    - Datasets API for data retrieval
-    - Use a library for generating BED files
-    - A top-level Python script for coordinating everything
-    - User can input a list of GeneIDs to run the script
-- Visualize via web page or Jupyter Notebook
-    - Aiming to reuse/embed GDV to show multiple genomes, aligned, on one page
+
+This application uses [NCBI Datasets](https://www.ncbi.nlm.nih.gov/datasets/) to download
+SARS-CoV-2 host gene information, augmented by the venerable [NCBI E-Utils](https://www.ncbi.nlm.nih.gov/books/NBK25501/),
+and post-processes it to generate the desired output reports.
+
+Key technical details include:
+- Python is the primary implementation language for data retrieval and transformation.
+- Portions of data retrieval and transformation use simple shell scripting; these may be migrated to Python in the future.
+- The [NCBI Datasets API](https://github.com/ncbi/datasets) is used, directly via Python, to access the [OpenAPI REST interface](https://api.ncbi.nlm.nih.gov/datasets/v1alpha/).
+- [Biopython](https://biopython.org) is used for manipulating genomic information in order to transform it and generate desired output.
+
     
 ### BED file specs
-See http://genome.ucsc.edu/FAQ/FAQformat.html#format1 for list of standard columns and specifications. Here we use:
+See UCSC's [Frequently Asked Questions: Data File Formats, BED format](http://genome.ucsc.edu/FAQ/FAQformat.html#format1) for list of standard columns and specifications. Here we use:
 
 - 6-column BED format given the need to capture strand for genes and subfeatures
 - RefSeq accession.version for column 1; also more explicit when multiple organisms are included in output
