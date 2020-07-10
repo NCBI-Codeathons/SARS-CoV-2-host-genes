@@ -53,24 +53,26 @@ Organism/gene table:
 
 ## Description of output contents
 
-Output | Description | How to present it
+Output | Description | Data presentation
 --- | --- | ---
 location|genomic coordinates from most recent NCBI annotation|BED file
-CDS|coordinates on the genome, and on the transcript|BED file
+CDS|coordinates on the transcript|BED file
 exons|coordinates on the genome|BED file
 transcript variants|coordinates on the genome (start to stop), with transcript identifier|BED file
 protein sequences|proteins from Protein, with NP identifier|FASTA
-protein domain annotation|domains or protein subparts (e.g signal, mature peptides) as annotated on protein flat files; project to the genome to output with genomic coordinates too|FASTA for peptides, BED file for genomic coordinates
+protein domain annotation|domains or protein subparts (e.g signal, mature peptides) as annotated on protein flat files|FASTA
 upstream regions|genomic coordinates of region 2 kb upstream of annotated transcription starts|BED file
-UTRs|genomic coordinates for exonic regions of transcripts just before (5' UTR) and after (3' UTR) the CDS|BED file
 introns|genomic coordinates for regions of transcript span that are not exonic|BED file
 **Non-sequence metadata**|
 summary|summary in Gene record|TSV file
-gene symbols, aliases|primary gene symbol and aliases from Gene record|TSV file
-primary description and other names|primary description and other names from Gene record|TSV file
+gene symbols|primary gene symbol from Gene record|TSV file
+gene aliases|aliases from Gene record|TSV file
+primary description|primary description from Gene record|TSV file
+other names|other names from Gene record|TSV file
 publications|associated PubMed IDs from Gene record|TSV file
 gene type|the type of gene from Gene record, e.g. protein-coding|TSV file
 expression data|cell/tissue type expression data from Gene record|TSV file
+GO terms|Gene Ontology terms on Gene record|TSV file
 
 ## Technical Implementation
 
@@ -93,7 +95,7 @@ See UCSC's [Frequently Asked Questions: Data File Formats, BED format](http://ge
 - 0-based start coordinates, 1-based end coordinates
 - File sorting by column 1 primary, column 2 secondary (chr and start positions, `sort -k1,1 -k2,2n` on command line)
 - Score (column 5) is irrelevant to this output but requires an integer, so value 1 is used here
-- The GeneID is indicated in column 4 (the only descriptive/label column), and may be joined via an underscore to other pertinent identifiable information for the feature. The name/label does not include spaces.
+- The GeneID is indicated in column 4, and may be joined via an underscore to other pertinent identifiable information for the feature. The name/label does not include spaces.
 - The relevant strand in column 6 is indicated by either '+' or '-'. All gene-related features in this output are strand-specific.
 
 ### Non-sequence metadata	
