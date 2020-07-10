@@ -10,18 +10,19 @@ Wratko Hlavina
 Xuan Zhang  
 
 ## Introduction
-The study of SARS-CoV-2 has become a significant interest for human health research, and has drawn attention to the human genes associated with SARS-CoV-2 entry. Users are therefore interested in retrieving as much information as possible about these host genes and their products, e.g. ACE2 encoding the SARS-CoV-2 spike protein receptor or TMPRSS2 encoding a protease that facilitates viral entry. In order to facilitate study of SARS-CoV-2 host genes, a comprehensive report of key features of structural annotation will be produced from this Codeathon, and will also include key metadata for these genes, such as nomenclature, summaries or associated publications. Since study of these genes in model organisms is also of interest to researchers, information on the orthologous genes in a select set of organisms will also be produced. The overriding goal will be to provide data from various NCBI resources (e.g. Gene, Nucleotide, Protein records) in a succinct tabular format, such that the user can quickly retrieve multiple types of high-interest information about these genes in one place.
+The study of SARS-CoV-2 has become a significant interest for human health research, and has drawn attention to the human genes associated with SARS-CoV-2 entry. Users are therefore interested in retrieving as much information as possible about these host genes and their products, e.g. ACE2 encoding the SARS-CoV-2 spike protein receptor or TMPRSS2 encoding a protease that facilitates viral entry. In order to facilitate study of SARS-CoV-2 host genes, a comprehensive report of key features of structural annotation will be produced from this Codeathon, and will also include key metadata for these genes, such as nomenclature, summaries or associated publications. Since study of these genes in model organisms is also of interest to researchers, information on the orthologous genes in a select set of organisms will also be produced. The overriding goal will be to provide data from various NCBI resources (e.g. [Gene](https://www.ncbi.nlm.nih.gov/gene/), [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/), [Nucleotide](https://www.ncbi.nlm.nih.gov/nucleotide/), [Protein](https://www.ncbi.nlm.nih.gov/protein/) records) in a succinct tabular format, such that the user can quickly retrieve multiple types of high-interest information about these genes in one place.
 
 ## Requirements
 * Python version 3.7 or above
-* NCBI E-Utils
+* [NCBI E-Utils](https://www.ncbi.nlm.nih.gov/books/NBK25501/)
 
 ## Quick Start
 After cloning or downloading this repository, you will need to:
-* _Pre-requisite:_ Install NCBI E-Utils
+* _Pre-requisite:_ Install [NCBI E-Utils](https://www.ncbi.nlm.nih.gov/books/NBK25501/)
 * _Optional but recommended:_ Create a Python virtual environment.
+* _Optional but recommended:_ Create an NCBI API Key. See [A General Introduction to the E-utilities](https://www.ncbi.nlm.nih.gov/books/NBK25497/) and [NCBI Insights: New API Keys for the E-utilities](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/) for an explanation and instructions.
 * Install Python library dependencies
-* Run the application, `main.py`, optionally with a list of Gene IDs of interest.
+* Run the application, `main.py`, optionally with a list of Gene IDs of interest; output will be placed in the current directory (unless otherwise specified).
 ```
 sh -c "$(wget -q ftp://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh -O -)"
 
@@ -50,49 +51,51 @@ Organism/gene table:
 |Rhesus monkey      |9544    |712790    |722252    |715138    |
 |Common vampire bat |9430    |112313373 |112320051 |112306012 |
 
-## Sketch of output and how to produce it
+## Description of output contents
 
-Output | Description | How to present it
+Output | Description | Data presentation
 --- | --- | ---
 location|genomic coordinates from most recent NCBI annotation|BED file
-CDS|coordinates on the genome, and on the transcript|BED file
+CDS|coordinates on the RefSeq transcript|BED file
 exons|coordinates on the genome|BED file
 transcript variants|coordinates on the genome (start to stop), with transcript identifier|BED file
-protein sequences|proteins from Protein, with NP identifier|FASTA
-protein domain annotation|domains or protein subparts (e.g signal, mature peptides) as annotated on protein flat files; project to the genome to output with genomic coordinates too|FASTA for peptides, BED file for genomic coordinates
+protein sequences|proteins from RefSeq, with NP identifier|FASTA
+protein domain annotation|domains or protein subparts (e.g signal, mature peptides) as annotated on protein flat files|FASTA
 upstream regions|genomic coordinates of region 2 kb upstream of annotated transcription starts|BED file
-UTRs|genomic coordinates for exonic regions of transcripts just before (5' UTR) and after (3' UTR) the CDS|BED file
 introns|genomic coordinates for regions of transcript span that are not exonic|BED file
 **Non-sequence metadata**|
 summary|summary in Gene record|TSV file
-gene symbols, aliases|primary gene symbol and aliases from Gene record|TSV file
-primary description and other names|primary description and other names from Gene record|TSV file
+gene symbols|primary gene symbol from Gene record|TSV file
+gene aliases|aliases from Gene record|TSV file
+primary description|primary description from Gene record|TSV file
+other names|other names from Gene record|TSV file
 publications|associated PubMed IDs from Gene record|TSV file
 gene type|the type of gene from Gene record, e.g. protein-coding|TSV file
 expression data|cell/tissue type expression data from Gene record|TSV file
+GO terms|Gene Ontology terms on Gene record|TSV file
 
 ## Technical Implementation
-- Prototyping of data retrieval
-    - Command-line `datasets` tool
-    - `jq`
-    - Simple shell scripting
-- Python for data retrieval and transformation
-    - Datasets API for data retrieval
-    - Use a library for generating BED files
-    - A top-level Python script for coordinating everything
-    - User can input a list of GeneIDs to run the script
-- Visualize via web page or Jupyter Notebook
-    - Aiming to reuse/embed GDV to show multiple genomes, aligned, on one page
+
+This application uses [NCBI Datasets](https://www.ncbi.nlm.nih.gov/datasets/) to download
+SARS-CoV-2 host gene information, augmented by the venerable [NCBI E-Utils](https://www.ncbi.nlm.nih.gov/books/NBK25501/),
+and post-processes it to generate the desired output reports.
+
+Key technical details include:
+- Python is the primary implementation language for data retrieval and transformation.
+- Portions of data retrieval and transformation use simple shell scripting; these may be migrated to Python in the future.
+- The [NCBI Datasets API](https://github.com/ncbi/datasets) is used, directly via Python, to access the [OpenAPI REST interface](https://api.ncbi.nlm.nih.gov/datasets/v1alpha/).
+- [Biopython](https://biopython.org) is used for manipulating genomic information in order to transform it and generate desired output.
+
     
 ### BED file specs
-See http://genome.ucsc.edu/FAQ/FAQformat.html#format1 for list of standard columns and specifications. Here we use:
+See UCSC's [Frequently Asked Questions: Data File Formats, BED format](http://genome.ucsc.edu/FAQ/FAQformat.html#format1) for list of standard columns and specifications. Here we use:
 
 - 6-column BED format given the need to capture strand for genes and subfeatures
 - RefSeq accession.version for column 1; also more explicit when multiple organisms are included in output
 - 0-based start coordinates, 1-based end coordinates
 - File sorting by column 1 primary, column 2 secondary (chr and start positions, `sort -k1,1 -k2,2n` on command line)
 - Score (column 5) is irrelevant to this output but requires an integer, so value 1 is used here
-- The GeneID is indicated in column 4 (the only descriptive/label column), and may be joined via an underscore to other pertinent identifiable information for the feature. The name/label does not include spaces.
+- The GeneID is indicated in column 4, and may be joined via an underscore to other pertinent identifiable information for the feature. The name/label does not include spaces.
 - The relevant strand in column 6 is indicated by either '+' or '-'. All gene-related features in this output are strand-specific.
 
 ### Non-sequence metadata	

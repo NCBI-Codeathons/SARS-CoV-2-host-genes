@@ -115,7 +115,7 @@ def process_all(gene_list, output_dir, api_key):
     bed_unsorted = output_dir/(base+'.tmp')
 
     selected_genes_text = ', '.join(str(id) for id in gene_list)
-    stderr.write(f'Generating SARS-CoV2 host gene report data in: {base}\n')
+    stderr.write(f'Generating SARS-CoV2 host gene report data as: {output_dir/base}*.*\n')
     stderr.write(f'Selected genes: {selected_genes_text}.\n')
     with open(bed_unsorted, 'w') as bed_output:
         stderr.write('- Fetching gene data\n')
