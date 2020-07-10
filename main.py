@@ -9,7 +9,7 @@ from pathlib import Path
 from shutil import copyfile
 from subprocess import run
 from biopython_helpers import write_bed, make_location, get_gene_data, gene_to_upstream, gene_to_introns 
-from taxonomy_helpers import get_short_taxname
+from taxonomy_helpers import get_short_taxname_from_gene
 from metadata import GeneMetaReport
 
 
@@ -27,11 +27,22 @@ def process_protein_fasta(dataset_dir, dest_dir):
     run(['bash', 'get_proteins.sh', dataset_dir, dest_dir])
 
 
+def make_bed_name(gene, feature_type=None, rest=None):
+    tax_prefix = get_short_taxname_from_gene(gene)
+    symbol = gene['symbol']
+    gene_id = gene['geneId']
+    name = f'{tax_prefix}_{symbol}_GeneID:{gene_id}'
+    if feature_type:
+        name += '_' + feature_type.replace(' ', '_')
+    if rest:
+        name += ':' + rest.replace(' ', '_')
+    return name
+
+
 def output_location(gene_data, bed_output):
     for gene in gene_data['genes']:
-        gene_id = gene['geneId']
         gene_location = make_location(gene['genomicRanges'][0])
-        name = f'GeneID_{gene_id}'
+        name = make_bed_name(gene)
         write_bed(bed_output, gene_location, name)
 
 
@@ -47,7 +58,7 @@ def output_cds(gene_data, bed_output):
             transcript_location = make_location(transcript['genomicRange'])
             cds_location = make_location(transcript['cds'], transcript_location.strand)
             for cdregion in cds_location.parts:
-                name = f'{symbol}_cds:{protein_accession}'
+                name = make_bed_name(gene, 'cds', protein_accession)
                 write_bed(bed_output, cdregion, name)
 
 
@@ -60,7 +71,7 @@ def output_exons(gene_data, bed_output):
             transcript_location = make_location(transcript['genomicRange'])
             exons_location = make_location(transcript['exons'], transcript_location.strand)
             for exon in exons_location.parts:
-                name = f'{symbol}_exon:{transcript_accession}'
+                name = make_bed_name(gene, 'exon', transcript_accession)
                 write_bed(bed_output, exon, name)
 
 def output_transcript_variants(gene_data, bed_output):
@@ -68,9 +79,9 @@ def output_transcript_variants(gene_data, bed_output):
         symbol = gene["symbol"]
         for transcript in gene['transcripts']:
             transcript_accession = transcript['accessionVersion']
-            transcript_name = transcript.get('name', 'transcript').replace(' ', '_')
+            transcript_name = transcript.get('name', 'transcript')
             transcript_location = make_location(transcript['genomicRange'])
-            name = f'{symbol}_{transcript_name}:{transcript_accession}'
+            name = make_bed_name(gene, transcript_name, transcript_accession)
             write_bed(bed_output, transcript_location, name)
 
 
@@ -80,7 +91,7 @@ def output_upstream_regions(gene_data, bed_output):
         upstream_collection = gene_to_upstream(gene)
 
         for row in upstream_collection:
-            name = f'{symbol}_upstream_region:'+','.join(row[1:])
+            name = make_bed_name(gene, 'upstream_region', ','.join(row[1:]))
             write_bed(bed_output, row[0], name)
 
 
@@ -89,7 +100,7 @@ def output_introns(gene_data, bed_output):
         symbol = gene["symbol"]
         intron_collection = gene_to_introns(gene)
         for row in intron_collection:
-            name = f'{symbol}_intron:'+','.join(row[1:])
+            name = make_bed_name(gene, 'intron', ','.join(row[1:]))
             write_bed(bed_output, row[0], name)
 
 

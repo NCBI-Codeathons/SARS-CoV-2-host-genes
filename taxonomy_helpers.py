@@ -74,7 +74,16 @@ TAXID_TO_ABBR = {
 }
 
 
-def get_short_taxname(taxid, name):
+def get_short_taxname(taxid, name=None):
     if taxid in TAXID_TO_ABBR:
         return TAXID_TO_ABBR[taxid]
-    return name.split()[-1]
+    if name:
+        return name.split()[-1]
+    return 'unknown'
+
+
+def get_short_taxname_from_gene(gene_data):
+    name = gene_data.get('taxname', None)
+    name = gene_data.get('commonName', None)
+    tax_id = int(gene_data['taxId'])
+    return get_short_taxname(tax_id, name)
