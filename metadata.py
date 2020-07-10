@@ -77,10 +77,10 @@ class GeneMetaReport():
         fields = []
         for field in self.field_list:
             fields.append(field[0])
-        tsv_output.write('\t'.join(fields) + "\r\n")
+        tsv_output.write('Id\t' + '\t'.join(fields) + "\r\n")
         for gene_id in self.genes:
             data = GeneData(gene_id, self.api_key)
             field_val = []
             for _, val in self.field_list:
                 field_val.append(data.pretty_print_field(val))
-            tsv_output.write('\t'.join(field_val) + "\r\n")
+            tsv_output.write(str(gene_id) + '\t' + '\t'.join(field_val) + "\r\n")

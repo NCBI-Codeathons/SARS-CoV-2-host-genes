@@ -2,13 +2,54 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SARS-CoV-2-host-genes</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" />
+    <!-- <link rel="stylesheet" href="./styles.css" /> -->
 </head>
 
 <body>
     <h1>Our team</h1>
+
+    <table id="example" class="display" style="width: 100%;">
+        <thead>
+            <tr>
+                <th>Chromosome</th>
+                <th>Chromosom Start (0 based)</th>
+                <th>Chromosome End (non-inclusive)</th>
+                <th>Name</th>
+                <th>Score</th>
+                <th>DNA Strand Orientation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- rows and columns from bed file are dynamically inserted here -->
+        </tbody>
+    </table>
 </body>
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script src="bed.js"></script>
+<script>
+    let bed_split = bed.map((x) =>
+        x.split(/(\s+)/).filter((e) => e.trim().length > 0)
+    );
+
+    console.log(bed_split);
+    let tbody = $("tbody");
+
+    for (const row of bed_split) {
+        let tr = $("<tr/>");
+        tbody.append(tr);
+
+        for (const col of row) {
+            tr.append(`<td>${col}</td>`);
+        }
+    }
+
+    const table = $("#example").DataTable();
+    // new $.fn.dataTable.Responsive(table, { details: false });
+</script>
 
 </html>
