@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 appdirs==1.4.4
 asn1crypto==0.24.0
 biopython==1.77
@@ -60,3 +61,8 @@ wcwidth==0.1.7
 webencodings==0.5.1
 widgetsnbextension==2.0.0
 zipp==3.1.0
+=======
+PyYAML
+biopython
+ncbi-datasets-pylib
+>>>>>>> 39140c860c49c42415d7fd2ac0029e6208504820
