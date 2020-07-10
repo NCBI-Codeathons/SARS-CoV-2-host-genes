@@ -9,9 +9,8 @@ from Bio import Entrez
 class GeneRetrieve():
     def __init__(self, gene_id, api_key=None):
         Entrez.email = "codeathon@example.com"
-        # if api_key:
-        #     Entrez.api_key = api_key
-        Entrez.api_key = 'ab0568529a7dd0e599fd12b3498f1c8e9e08'
+        if api_key:
+            Entrez.api_key = api_key
         self.handle_summary = Entrez.esummary(db="gene", id=gene_id, rettype="xml")
         self.handle_full = Entrez.efetch(db="gene", id=gene_id, rettype="xml")
         self.handle_gene2pubmed = Entrez.elink(dbfrom="gene", db="pubmed", id=gene_id, rettype="xml")
