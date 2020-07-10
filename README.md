@@ -125,6 +125,14 @@ To download these genes to a file use:
 ```./datasets download gene 59272 28 7113 70008 80908 50528 492331 494080 712790 722252 715138 112313373 112320051 112306012```
 
 ### Sample usage
+
+First, choose a set of Gene ID. You may use various resources to explore the available genes and organisms.
+For example, if you have a set of gene names in mind, and a target set of organisms, you may use [NCBI Entrez Gene](https://www.ncbi.nlm.nih.gov/gene/), entering a suitable query and using the _Send to_ funtion to download the
+list of Gene IDs.
+![Sample of using NCBI Entrez Gene](entrez_gene_query.png)
+
+Having selected your gene list, provide the file as input to the `main.py` tool, via the `--input` argument. If you do not provide a list of Gene IDs,
+a default set is included as an example:
 ![Sample usage](sample-usage.jpg)
 
 ### Sample output
