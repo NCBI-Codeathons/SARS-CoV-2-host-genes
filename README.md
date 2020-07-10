@@ -121,6 +121,9 @@ To download these genes to a file use:
 
 ```./datasets download gene 59272 28 7113 70008 80908 50528 492331 494080 712790 722252 715138 112313373 112320051 112306012```
 
+### Sample usage
+![Sample usage](sample-usage.jpg)
+
 ### Sample output
 Protein domain and annotation from esearch 
 
