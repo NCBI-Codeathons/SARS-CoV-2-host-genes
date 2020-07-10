@@ -33,15 +33,15 @@ def download_gene_data_via_api(gene_ids, dest):
         api_instance = ncbi.datasets.DownloadApi(api_client)
         include_sequence_type = ['SEQ_TYPE_GENE', 'SEQ_TYPE_RNA', 'SEQ_TYPE_PROTEIN']
         filename = 'sars-cov2-genes.zip'
-        api_response = api_instance.download_gene_package(gene_ids,
+        api_response = api_instance.download_gene_package(list(gene_ids),
                             filename=filename, _preload_content=False)
         zip_file = open(filename, 'wb')
         try:
             copyfileobj(api_response, zip_file)
+            zip_file.close()
             with zipfile.ZipFile(filename) as zip_data:
                 zip_data.extractall(dest)
         finally:
-            zip_file.close()
             remove(filename)
 
 

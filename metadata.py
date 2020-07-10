@@ -1,24 +1,19 @@
 """
 This Python retrieves Non-sequence metadata
-Input: gene id
-Output: print stdout
+Input: gene ids as list
+Output: .tsv file
 https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=28
 """
-import xml.etree.ElementTree as ET
-from xml.dom import minidom
 from Bio import Entrez
-import urllib.request
 
 class GeneRetrieve():
-    def __init__(self, gene_id):
+    def __init__(self, gene_id, api_key=None):
         Entrez.email = "codeathon@example.com"
-        Entrez.api_key = "ab0568529a7dd0e599fd12b3498f1c8e9e08"
+        if api_key:
+            Entrez.api_key = api_key
         self.handle_summary = Entrez.esummary(db="gene", id=gene_id, rettype="xml")
         self.handle_full = Entrez.efetch(db="gene", id=gene_id, rettype="xml")
         self.handle_gene2pubmed = Entrez.elink(dbfrom="gene", db="pubmed", id=gene_id, rettype="xml")
-        # webUrl = urllib.request.urlopen('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=28')
-        # webUrl.getcode() == 200
-        # data = webUrl.read()
 
     def record(self):
         record_summary = Entrez.read(self.handle_summary)
@@ -28,10 +23,9 @@ class GeneRetrieve():
 
 
 class GeneData():
-    def __init__(self, gene_id):
-        gene_record = GeneRetrieve(gene_id)
+    def __init__(self, gene_id, api_key):
+        gene_record = GeneRetrieve(gene_id, api_key)
         self.doc_summary, self.doc_full, self.doc_pubmed = gene_record.record()
-        # self.doc = record['DocumentSummarySet']['DocumentSummary'][0]
 
     def pretty_print_field(self, dom_element):
         if dom_element.in_esummary == "Gene2Pubmed":
@@ -53,6 +47,26 @@ class DomElement():
             for link in doc['LinkSetDb'][0]['Link']:
                 pubmed_ids.append(link['Id'])
             return ', '.join(pubmed_ids)
+        if self.tag == "GeneExpression":
+            tissue = ""
+            for comm in doc['Entrezgene_comments']:
+                if comm.get('Gene-commentary_heading') == 'Representative Expression':
+                    for gene_comm in comm['Gene-commentary_comment']:
+                        if gene_comm['Gene-commentary_label'] == 'Tissue List':
+                            tissue = gene_comm['Gene-commentary_text']
+            return tissue
+        if self.tag == "GO":
+            go_terms = []
+            for comm in doc['Entrezgene_properties']:
+                if comm.get('Gene-commentary_heading') == 'GeneOntology':
+                    for go_comm in comm['Gene-commentary_comment']:
+                        go_comm_comm_list = go_comm.get('Gene-commentary_comment')
+                        for go_com_com in go_comm_comm_list:
+                            go_com_com_source = go_com_com.get('Gene-commentary_source')
+                            if go_com_com_source and \
+                               go_com_com_source[0].get('Other-source_src').get('Dbtag').get('Dbtag_db') == 'GO':
+                                go_terms.append(go_com_com_source[0].get('Other-source_anchor'))
+            return ", ".join(go_terms)
         if self.attribute_name:
             return getattr(doc[self.tag], 'attributes')[self.attribute_name]
         else:
@@ -61,24 +75,27 @@ class DomElement():
 
 class GeneMetaReport():
 
-    def __init__(self, gene_list):
+    def __init__(self, gene_list, api_key):
         self.genes = gene_list
+        self.api_key = api_key
         self.field_list = [('Summary', DomElement('Summary', None, True)),
                   ('Symbol', DomElement('Name', None, True)),
                   ('Aliases', DomElement('OtherAliases', None, True)),
                   ('Description', DomElement('Description', None, True)),
                   ('Type', DomElement('Entrezgene_type', 'value', False)),
                   ('Publications', DomElement('', None, "Gene2Pubmed")),
+                  ('Expression', DomElement('GeneExpression', None, False)),
+                  ('GO', DomElement('GO', None, False)),
                  ]
 
     def write_report(self, tsv_output):
         fields = []
         for field in self.field_list:
             fields.append(field[0])
-        tsv_output.write('\t'.join(fields) + "\r\n")
+        tsv_output.write('Id\t' + '\t'.join(fields) + "\r\n")
         for gene_id in self.genes:
-            data = GeneData(gene_id)
+            data = GeneData(gene_id, self.api_key)
             field_val = []
             for _, val in self.field_list:
                 field_val.append(data.pretty_print_field(val))
-            tsv_output.write('\t'.join(field_val) + "\r\n")
+            tsv_output.write(str(gene_id) + '\t' + '\t'.join(field_val) + "\r\n")
