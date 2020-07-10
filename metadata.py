@@ -1,7 +1,7 @@
 """
 This Python retrieves Non-sequence metadata
-Input: gene id
-Output: print stdout
+Input: gene ids as list
+Output: .tsv file
 https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=28
 """
 from Bio import Entrez
@@ -55,6 +55,18 @@ class DomElement():
                         if gene_comm['Gene-commentary_label'] == 'Tissue List':
                             tissue = gene_comm['Gene-commentary_text']
             return tissue
+        if self.tag == "GO":
+            go_terms = []
+            for comm in doc['Entrezgene_properties']:
+                if comm.get('Gene-commentary_heading') == 'GeneOntology':
+                    for go_comm in comm['Gene-commentary_comment']:
+                        go_comm_comm_list = go_comm.get('Gene-commentary_comment')
+                        for go_com_com in go_comm_comm_list:
+                            go_com_com_source = go_com_com.get('Gene-commentary_source')
+                            if go_com_com_source and \
+                               go_com_com_source[0].get('Other-source_src').get('Dbtag').get('Dbtag_db') == 'GO':
+                                go_terms.append(go_com_com_source[0].get('Other-source_anchor'))
+            return ", ".join(go_terms)
         if self.attribute_name:
             return getattr(doc[self.tag], 'attributes')[self.attribute_name]
         else:
@@ -73,6 +85,7 @@ class GeneMetaReport():
                   ('Type', DomElement('Entrezgene_type', 'value', False)),
                   ('Publications', DomElement('', None, "Gene2Pubmed")),
                   ('Expression', DomElement('GeneExpression', None, False)),
+                  ('GO', DomElement('GO', None, False)),
                  ]
 
     def write_report(self, tsv_output):
