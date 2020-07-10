@@ -9,6 +9,7 @@ from pathlib import Path
 from shutil import copyfile
 from subprocess import run
 from biopython_helpers import write_bed, make_location, get_gene_data, gene_to_upstream, gene_to_introns 
+from taxonomy_helpers import get_short_taxname
 from metadata import GeneMetaReport
 
 
