@@ -27,7 +27,7 @@ After cloning or downloading this repository, you will need to:
 sh -c "$(wget -q ftp://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh -O -)"
 
 python3 -m venv env
-. env/bin/activate.sh
+. env/bin/activate
 pip install -r requirements.txt
 
 ./main.py -h
