@@ -4,21 +4,16 @@ Input: gene id
 Output: print stdout
 https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=28
 """
-# import xml.etree.ElementTree as ET
-# from xml.dom import minidom
 from Bio import Entrez
-# import urllib.request
 
 class GeneRetrieve():
-    def __init__(self, gene_id):
-        Entrez.email = "who@nih.gov"
-        Entrez.api_key = "ab0568529a7dd0e599fd12b3498f1c8e9e08"
+    def __init__(self, gene_id, api_key=None):
+        Entrez.email = "codeathon@example.com"
+        if api_key:
+            Entrez.api_key = api_key
         self.handle_summary = Entrez.esummary(db="gene", id=gene_id, rettype="xml")
         self.handle_full = Entrez.efetch(db="gene", id=gene_id, rettype="xml")
         self.handle_gene2pubmed = Entrez.elink(dbfrom="gene", db="pubmed", id=gene_id, rettype="xml")
-        # webUrl = urllib.request.urlopen('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=28')
-        # webUrl.getcode() == 200
-        # data = webUrl.read()
 
     def record(self):
         record_summary = Entrez.read(self.handle_summary)
@@ -28,10 +23,9 @@ class GeneRetrieve():
 
 
 class GeneData():
-    def __init__(self, gene_id):
-        gene_record = GeneRetrieve(gene_id)
+    def __init__(self, gene_id, api_key):
+        gene_record = GeneRetrieve(gene_id, api_key)
         self.doc_summary, self.doc_full, self.doc_pubmed = gene_record.record()
-        # self.doc = record['DocumentSummarySet']['DocumentSummary'][0]
 
     def pretty_print_field(self, dom_element):
         if dom_element.in_esummary == "Gene2Pubmed":
@@ -69,9 +63,9 @@ class DomElement():
 
 class GeneMetaReport():
 
-    def __init__(self, gene_list):
+    def __init__(self, gene_list, api_key):
         self.genes = gene_list
-        self.fout_name = "metadata.tsv"
+        self.api_key = api_key
         self.field_list = [('Summary', DomElement('Summary', None, True)),
                   ('Symbol', DomElement('Name', None, True)),
                   ('Aliases', DomElement('OtherAliases', None, True)),
@@ -81,16 +75,14 @@ class GeneMetaReport():
                   ('Expression', DomElement('GeneExpression', None, False)),
                  ]
 
-    def write_report(self):
-        with open(self.fout_name, "w") as fout:
-            fields = []
-            for field in self.field_list:
-                fields.append(field[0])
-            fout.write('Id\t' + '\t'.join(fields) + "\r\n")
-            for gene_id in self.genes:
-                data = GeneData(gene_id)
-                field_val = []
-                for _, val in self.field_list:
-                    field_val.append(data.pretty_print_field(val))
-                fout.write(str(gene_id) + '\t' + '\t'.join(field_val) + "\r\n")
-        fout.close()
+    def write_report(self, tsv_output):
+        fields = []
+        for field in self.field_list:
+            fields.append(field[0])
+        tsv_output.write('Id\t' + '\t'.join(fields) + "\r\n")
+        for gene_id in self.genes:
+            data = GeneData(gene_id, self.api_key)
+            field_val = []
+            for _, val in self.field_list:
+                field_val.append(data.pretty_print_field(val))
+            tsv_output.write(str(gene_id) + '\t' + '\t'.join(field_val) + "\r\n")
