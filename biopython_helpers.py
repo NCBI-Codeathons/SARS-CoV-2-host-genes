@@ -38,10 +38,10 @@ def download_gene_data_via_api(gene_ids, dest):
         zip_file = open(filename, 'wb')
         try:
             copyfileobj(api_response, zip_file)
+            zip_file.close()
             with zipfile.ZipFile(filename) as zip_data:
                 zip_data.extractall(dest)
         finally:
-            zip_file.close()
             remove(filename)
 
 
