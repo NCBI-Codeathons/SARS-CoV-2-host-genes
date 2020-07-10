@@ -10,9 +10,10 @@ from Bio import Entrez
 import urllib.request
 
 class GeneRetrieve():
-    def __init__(self, gene_id):
+    def __init__(self, gene_id, api_key=None):
         Entrez.email = "codeathon@example.com"
-        Entrez.api_key = "ab0568529a7dd0e599fd12b3498f1c8e9e08"
+        if api_key:
+            Entrez.api_key = api_key
         self.handle_summary = Entrez.esummary(db="gene", id=gene_id, rettype="xml")
         self.handle_full = Entrez.efetch(db="gene", id=gene_id, rettype="xml")
         self.handle_gene2pubmed = Entrez.elink(dbfrom="gene", db="pubmed", id=gene_id, rettype="xml")
@@ -28,8 +29,8 @@ class GeneRetrieve():
 
 
 class GeneData():
-    def __init__(self, gene_id):
-        gene_record = GeneRetrieve(gene_id)
+    def __init__(self, gene_id, api_key):
+        gene_record = GeneRetrieve(gene_id, api_key)
         self.doc_summary, self.doc_full, self.doc_pubmed = gene_record.record()
         # self.doc = record['DocumentSummarySet']['DocumentSummary'][0]
 
@@ -61,8 +62,9 @@ class DomElement():
 
 class GeneMetaReport():
 
-    def __init__(self, gene_list):
+    def __init__(self, gene_list, api_key):
         self.genes = gene_list
+        self.api_key = api_key
         self.field_list = [('Summary', DomElement('Summary', None, True)),
                   ('Symbol', DomElement('Name', None, True)),
                   ('Aliases', DomElement('OtherAliases', None, True)),
@@ -77,7 +79,7 @@ class GeneMetaReport():
             fields.append(field[0])
         tsv_output.write('\t'.join(fields) + "\r\n")
         for gene_id in self.genes:
-            data = GeneData(gene_id)
+            data = GeneData(gene_id, self.api_key)
             field_val = []
             for _, val in self.field_list:
                 field_val.append(data.pretty_print_field(val))

@@ -3,7 +3,7 @@
 import argparse
 import yaml
 import pprint
-from os import makedirs, remove
+from os import environ, makedirs, remove
 from sys import stderr
 from pathlib import Path
 from shutil import copyfile
@@ -91,10 +91,14 @@ def output_introns(gene_data, bed_output):
             write_bed(bed_output, row[0], name)
 
 
-def process_all(gene_list, output_dir):
+def process_all(gene_list, output_dir, api_key):
     dataset_dir=Path('sars-cov2-gene-data')
     base='sars-cov2-host-genes'
     bed_unsorted = output_dir/(base+'.tmp')
+
+    selected_genes_text = ', '.join(str(id) for id in gene_list)
+    stderr.write(f'Generating SARS-CoV2 host gene report data in: {base}\n')
+    stderr.write(f'Selected genes: {selected_genes_text}.\n')
     with open(bed_unsorted, 'w') as bed_output:
         stderr.write('- Fetching gene data\n')
         gene_data = get_gene_data(gene_list, dataset_dir)
@@ -128,7 +132,7 @@ def process_all(gene_list, output_dir):
     remove(bed_unsorted)
 
     stderr.write('- Precessing metadata\n')
-    meta_report = GeneMetaReport(gene_list)
+    meta_report = GeneMetaReport(gene_list, api_key)
     with open(output_dir/(base+'-metadata.tsv'), 'w') as tsv_output:
         meta_report.write_report(tsv_output)
 
@@ -140,13 +144,33 @@ def main():
     parser.add_argument('--output', nargs='?',
                         default='.',
                         help=f'Output directory. DEFAULT: Current Directory (.)')
+    parser.add_argument('--input', nargs='?',
+                        help='Input file containing a list of Gene IDs instead of command line')
+    parser.add_argument('--api-key', nargs='?',
+                        default=environ.get('NCBI_API_KEY', 'ab0568529a7dd0e599fd12b3498f1c8e9e08'),
+                        help=f'NCBI API Key for using Entrez faster, with reduced throttling.')
     parser.add_argument('genes', nargs='*',
                         default=default_gene_ids,
                         help=f'Input Gene IDs process. DEFAULT: {default_gene_ids_string}')
     args = parser.parse_args()
     output_dir = Path(args.output)
     makedirs(output_dir, exist_ok=True)
-    process_all(args.genes, output_dir)
+    if args.input:
+        if args.genes != default_gene_ids:
+            stderr.write('WARNING: Ignoring additional genes listed on command line.\n')    
+        gene_set = set()
+        with open(args.input) as input:
+            for line in input:
+                for item in line.split():
+                    if item.strip():
+                        gene_set.add(int(item))
+    else:
+        gene_set = set(args.genes)
+
+    if args.api_key:
+        environ['NCBI_API_KEY'] = args.api_key
+
+    process_all(gene_set, output_dir, args.api_key)
 
 
 if __name__ == "__main__":
